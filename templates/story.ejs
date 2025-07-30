@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Story</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .loading-spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 12px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            background: linear-gradient(to bottom right, #f8fafc, #e0f2fe);
+            font-family: 'Inter', sans-serif;
+            padding: 20px;
+            box-sizing: border-box;
+            color: #334155;
+        }
+
+        #main-content-wrapper {
+            max-width: 900px;
+            width: 100%;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+            margin-top: 20px;
+        }
+
+        #storyContent p {
+            font-size: 1rem;
+            line-height: 1.8;
+            margin-bottom: 1.5em;
+            text-align: justify;
+            text-rendering: optimizeLegibility;
+            position: relative;
+        }
+
+        #story-message-container {
+            text-align: center;
+            padding: 15px;
+            margin-top: 25px;
+            border-radius: 12px;
+            background-color: #e0f2fe;
+            color: #1e40af;
+            font-weight: 500;
+        }
+        #story-message-container.error {
+            background-color: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .show-translation {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            margin-left: 8px;
+            vertical-align: middle;
+            background-color: #e2e8f0;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+            transition: background-color 0.2s ease, transform 0.2s ease;
+        }
+
+        .show-translation:hover {
+            background-color: #cbd5e1;
+            transform: translateY(-1px);
+        }
+
+        .show-translation svg {
+            width: 18px;
+            height: 18px;
+            color: #4a5568;
+        }
+
+        .translation-output {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #2563eb;
+            font-style: italic;
+            background-color: #eff6ff;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            border-left: 4px solid #3b82f6;
+        }
+
+        #storyTitle {
+            font-size: 2rem;
+            font-weight: 900;
+            color: #1a202c;
+            margin-bottom: 20px;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        .story-button {
+            padding: 10px 15px; /* Smaller padding for smaller screens */
+            font-size: 0.9rem; /* Smaller font size for smaller screens */
+            font-weight: 600;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s ease-in-out;
+            border: none;
+            width: 48%; /* Occupy half width for side-by-side */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px; /* Space between icon and text if text is present */
+        }
+
+        .story-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        #backToListButton {
+            background-color: #cbd5e1;
+            color: #4a5568;
+        }
+        #backToListButton:hover {
+            background-color: #a0aec0;
+        }
+
+        #nextSegmentButton {
+            background-color: #3b82f6;
+            color: white;
+        }
+        #nextSegmentButton:hover {
+            background-color: #2563eb;
+        }
+
+        .story-segment {
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 20px;
+        }
+        .story-segment:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        /* Flexbox for buttons on small screens */
+        .flex-buttons-mobile {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-top: 2.5rem; /* mt-10 equivalent */
+        }
+
+        @media (min-width: 768px) {
+            body {
+                padding: 30px;
+            }
+
+            #main-content-wrapper {
+                padding: 40px;
+                margin-top: 30px;
+            }
+
+            #storyContent p {
+                font-size: 1.15rem;
+            }
+
+            #storyTitle {
+                font-size: 3rem;
+                margin-bottom: 30px;
+            }
+
+            .story-button {
+                padding: 14px 28px;
+                font-size: 1.1rem;
+                width: auto; /* Revert to auto width on larger screens */
+            }
+
+            #backToListButton {
+                margin-bottom: 0;
+            }
+
+            /* Revert to Tailwind's default flex behavior on larger screens */
+            .flex-buttons-mobile {
+                flex-direction: row;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="main-content-wrapper" class="flex flex-col items-center">
+        <h1 id="storyTitle">Loading Story...</h1>
+        <div id="storyContent" class="w-full">
+            </div>
+
+        <div class="flex-buttons-mobile">
+            <button id="backToListButton" class="story-button">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12m-4.5 9V9.563c0-.892.812-1.638 1.704-1.579a18.283 18.283 0 0 1 .452.055L21 8.25c.536.084 1 .593 1 1.146V20.25a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V9.409c0-.553.464-1.062 1-1.146.12-.018.24-.031.36-.04A2.658 2.658 0 0 1 11.4 7.5c.666 0 1-.375 1-1.125V1.875c0-.414-.46-.75-.825-.75h-.375c-.365 0-.825.336-.825.75v5.5C10.5 7.125 10.166 7.5 9.75 7.5H4.875" />
+                </svg>
+                <span class="hidden sm:inline">Back to List</span>
+            </button>
+
+            <button id="nextSegmentButton" class="story-button">
+                <span class="hidden sm:inline">Continue Story</span>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 8.25 21 12m0 0-3.75 3.75M21 12H3" />
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <script src="/static/js/story.js"></script>
+</body>
+</html>

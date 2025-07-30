@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Words</title>
+    <script>
+        window.addEventListener('pageshow', function(event) {
+            if (event.persisted) {
+                window.location.reload();
+            }
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .hidden {
+            display: none;
+        }
+        /* Custom radio button style for "View Words From" */
+        .simple-radio-label {
+            display: inline-flex;
+            align-items: center;
+            cursor: pointer;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.25rem;
+            transition: all 0.2s ease-in-out;
+            font-weight: 500;
+            color: #5D6D7E; /* Default text color */
+        }
+        .simple-radio-label:hover {
+            background-color: #F0F2F5; 
+            color: #2C3E50;
+        }
+        .simple-radio-label input[type="radio"] {
+            display: none; /* Hide default radio button */
+        }
+        .simple-radio-label input[type="radio"]:checked + span {
+            color: #007BFF; 
+            font-weight: 600; 
+            border-bottom: 2px solid #007BFF; 
+            padding-bottom: 0.25rem; /* Space for underline */
+        }
+    </style>
+    
+</head>
+<body class="bg-[#F6F8FA] font-sans leading-normal tracking-normal min-h-screen flex flex-col">
+
+    <nav class="bg-[#EAEFF4] p-4 sticky top-0 z-10 shadow-sm">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="/" class="text-[#2C3E50] text-2xl font-bold">Tale Ling</a>
+            
+            <button id="menu-button" class="md:hidden text-[#2C3E50] focus:outline-none">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
+
+            <div class="hidden md:flex items-center space-x-8">
+                <a href="/" class="text-[#5D6D7E] hover:text-[#2C3E50] transition duration-200 text-lg font-medium flex items-center space-x-2">
+                    <i data-lucide="home" class="w-5 h-5"></i>
+                    <span>Home</span>
+                </a>
+                <a href="/search" class="text-[#5D6D7E] hover:text-[#2C3E50] transition duration-200 text-lg font-medium flex items-center space-x-2">
+                    <i data-lucide="search" class="w-5 h-5"></i>
+                    <span>Add Preferences</span>
+                </a>
+                <a href="/preferences" class="text-[#5D6D7E] hover:text-[#2C3E50] transition duration-200 text-lg font-medium flex items-center space-x-2">
+                    <i data-lucide="heart" class="w-5 h-5"></i>
+                    <span>View Preferences</span>
+                </a>
+                <a href="/words" class="text-[#5D6D7E] hover:text-[#2C3E50] transition duration-200 text-lg font-medium flex items-center space-x-2">
+                    <i data-lucide="book-text" class="w-5 h-5"></i>
+                    <span>Words</span>
+                </a>
+            </div>
+
+            <div class="hidden md:flex space-x-4">
+                <% if (!session) { %>
+                    <a href="/auth" class="text-[#5D6D7E] hover:text-[#2C3E50] transition duration-200 text-lg font-medium flex items-center space-x-2">
+                        <i data-lucide="log-in" class="w-5 h-5"></i>
+                        <span>Sign in</span>
+                    </a>
+                    <a href="/auth" class="text-[#5D6D7E] hover:text-[#2C3E50] transition duration-200 text-lg font-medium flex items-center space-x-2">
+                        <i data-lucide="user-plus" class="w-5 h-5"></i>
+                        <span>Sign Up</span>
+                    </a>
+                <% } else { %>
+                    <a href="#" id="signOutButton" class="text-[#5D6D7E] hover:text-[#2C3E50] transition duration-200 text-lg font-medium flex items-center space-x-2">
+                        <i data-lucide="log-out" class="w-5 h-5"></i>
+                        <span>Sign Out</span>
+                    </a>
+                <% } %>
+            </div>
+        </div>
+    </nav>
+
+    <div id="sidebar" class="fixed top-0 right-0 h-full w-64 bg-[#EAEFF4] transform translate-x-full transition-transform duration-300 ease-in-out z-50 p-6 flex flex-col space-y-4 shadow-lg">
+        <div class="flex justify-end">
+            <button id="sidebar-close-button" class="text-[#2C3E50] focus:outline-none">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        <a href="/" class="text-[#5D6D7E] hover:text-[#2C3E50] transition duration-200 text-lg font-medium py-2 flex items-center space-x-2">
+            <i data-lucide="home" class="w-5 h-5"></i>
+            <span>Home</span>
+        </a>
+        <a href="/search" class="text-[#5D6D7E] hover:text-[#2C3E50] transition duration-200 text-lg font-medium py-2 flex items-center space-x-2">
+            <i data-lucide="search" class="w-5 h-5"></i>
+            <span>Add Preferences</span>
+        </a>
+        <a href="/preferences" class="text-[#5D6D7E] hover:text-[#2C3E50] transition duration-200 text-lg font-medium py-2 flex items-center space-x-2">
+            <i data-lucide="heart" class="w-5 h-5"></i>
+            <span>View Preferences</span>
+        </a>
+        <a href="/words" class="text-[#5D6D7E] hover:text-[#2C3E50] transition duration-200 text-lg font-medium py-2 flex items-center space-x-2">
+            <i data-lucide="book-text" class="w-5 h-5"></i>
+            <span>Words</span>
+        </a>
+        <div class="border-t border-[#CBD5E0] pt-4 mt-4"></div>
+        <% if (!session) { %>
+            <a href="/auth" class="text-[#5D6D7E] hover:text-[#2C3E50] transition duration-200 text-lg font-medium py-2 flex items-center space-x-2">
+                <i data-lucide="log-in" class="w-5 h-5"></i>
+                <span>Sign in</span>
+            </a>
+            <a href="/auth" class="text-[#5D6D7E] hover:text-[#2C3E50] transition duration-200 text-lg font-medium py-2 flex items-center space-x-2">
+                <i data-lucide="user-plus" class="w-5 h-5"></i>
+                <span>Sign Up</span>
+            </a>
+        <% } else { %>
+            <a href="#" id="signOutButtonMobile" class="text-[#5D6D7E] hover:text-[#2C3E50] transition duration-200 text-lg font-medium py-2 flex items-center space-x-2">
+                <i data-lucide="log-out" class="w-5 h-5"></i>
+                <span>Sign Out</span>
+            </a>
+        <% } %>
+    </div>
+
+    <div id="sidebar-backdrop" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
+
+    <main class="flex-grow container mx-auto mt-8 p-6 md:p-10 bg-[#FFFFFF] rounded-xl shadow-lg max-w-6xl">
+        <div class="w-full">
+            <% if (typeof session !== 'undefined' && session) { %>
+                <% if (typeof words !== 'undefined' && words) {%>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                        <div class="bg-[#FBFBFC] p-6 rounded-lg shadow-md border border-[#E0E0E0]">
+                            <h3 class="text-xl font-bold text-[#2C3E50] mb-4">Search Words</h3>
+                            <form action="/search" method="GET" class="flex flex-col sm:flex-row gap-4">
+                                <input
+                                    type="text"
+                                    name="query"
+                                    placeholder="Enter your search query..."
+                                    class="flex-grow p-3 border border-[#E0E0E0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#007BFF] text-[#2C3E50] text-lg"
+                                    aria-label="Search input field"
+                                />
+                                <button
+                                    type="submit"
+                                    class="bg-[#007BFF] hover:bg-[#0056B3] text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[#007BFF] focus:ring-opacity-75 flex items-center justify-center space-x-2"
+                                    aria-label="Search button"
+                                >
+                                    <i data-lucide="search" class="w-5 h-5"></i>
+                                    <span>Search</span>
+                                </button>
+                            </form>
+                        </div>
+
+                        <div class="bg-[#FBFBFC] p-5 rounded-lg shadow-md border border-[#E0E0E0]">
+                            <h3 class="text-xl font-bold text-[#2C3E50] mb-3">Move Selected Words To:</h3>
+                            <select id="targetGroupSelect" class="block w-full p-2.5 border border-[#E0E0E0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#007BFF] text-[#2C3E50] text-lg mb-3">
+                                <option value="">-- Select a group --</option>
+                                <option value="base_words">Base</option>
+                                <option value="getting_used_words">Familiar</option>
+                                <option value="comfortable_words">Learned</option>
+                            </select>
+                            <button id="moveWordsBtn" class="w-full bg-[#6C757D] hover:bg-[#5A6268] text-white font-bold py-2.5 px-5 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[#6C757D] focus:ring-opacity-75 flex items-center justify-center space-x-2">
+                                <i data-lucide="send" class="w-5 h-5"></i>
+                                <span>Move Selected Words</span>
+                            </button>
+                            <div id="moveWordsMessage" class="mt-3 p-2 text-center rounded-md hidden text-sm"></div>
+                        </div>
+                    </div>
+
+                    <div class="mb-8">
+                        <h3 class="sr-only">View Words From:</h3> <div class="flex flex-wrap gap-x-6 gap-y-2 justify-center border-b border-[#E0E0E0] pb-2">
+                            <label class="simple-radio-label">
+                                <input type="radio" name="wordGroupView" value="base_words" checked>
+                                <span>Base</span>
+                            </label>
+                            <label class="simple-radio-label">
+                                <input type="radio" name="wordGroupView" value="getting_used_words">
+                                <span>Familiar</span>
+                            </label>
+                            <label class="simple-radio-label">
+                                <input type="radio" name="wordGroupView" value="comfortable_words">
+                                <span>Learned</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="wordGroupsContainer" class="w-full">
+                        <div id="base_wordsContainer" class="word-group-display bg-[#FFFFFF] p-8 rounded-xl shadow-lg mb-6">
+                            <h2 class="text-2xl font-bold text-[#2C3E50] mb-6">Your Base Words</h2>
+                            <% if (words.base && words.base.length > 0){%>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                                    <% words.base.forEach(function(word, index){%>
+                                        <label for="word-base_words-<%= index %>" class="group word-item flex items-center justify-between p-4 bg-[#FBFBFC] rounded-lg border border-[#E0E0E0] text-[#2C3E50] shadow-sm transition-all duration-200 ease-in-out cursor-pointer
+                                            hover:border-blue-300 hover:shadow-md active:bg-blue-50 active:shadow-inner
+                                            has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50 has-[:checked]:shadow-md">
+                                            
+                                            <p class="text-lg font-medium truncate"><%= word %></p>
+                                            <input
+                                                type="checkbox"
+                                                id="word-base_words-<%= index %>"
+                                                name="selectedWords"
+                                                value="<%= word %>"
+                                                data-group="base_words"
+                                                class="h-6 w-6 text-[#007BFF] border-[#90CDF4] rounded focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 ml-4 flex-shrink-0"
+                                                aria-label="Select word <%= word %>"
+                                                <% if (typeof selectedWords !== 'undefined' && selectedWords.includes(word)) { %>checked<% } %>
+                                            >
+                                        </label>
+                                        <%})%>
+                                </div>
+                            <% } else {%>
+                                <p class="text-[#5D6D7E] text-lg mb-4">No base words to show. Start a new story!</p>
+                            <% }%>
+                        </div>
+
+                        <div id="getting_used_wordsContainer" class="word-group-display bg-[#FFFFFF] p-8 rounded-xl shadow-lg mb-6 hidden">
+                            <h2 class="text-2xl font-bold text-[#2C3E50] mb-6">Your Familiar Words</h2>
+                            <% if (words.getting && words.getting.length > 0){%>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                                    <% words.getting.forEach(function(word, index){%>
+                                        <label for="word-getting_used_words-<%= index %>" class="group word-item flex items-center justify-between p-4 bg-[#FBFBFC] rounded-lg border border-[#E0E0E0] text-[#2C3E50] shadow-sm transition-all duration-200 ease-in-out cursor-pointer
+                                            hover:border-blue-300 hover:shadow-md active:bg-blue-50 active:shadow-inner
+                                            has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50 has-[:checked]:shadow-md">
+                                            <p class="text-lg font-medium truncate"><%= word %></p>
+                                            <input
+                                                type="checkbox"
+                                                id="word-getting_used_words-<%= index %>"
+                                                name="selectedWords"
+                                                value="<%= word %>"
+                                                data-group="getting_used_words"
+                                                class="h-6 w-6 text-[#007BFF] border-[#90CDF4] rounded focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 ml-4 flex-shrink-0"
+                                                aria-label="Select word <%= word %>"
+                                                <% if (typeof selectedWords !== 'undefined' && selectedWords.includes(word)) { %>checked<% } %>
+                                            >
+                                        </label>
+                                        <%})%>
+                                </div>
+                            <% } else {%>
+                                <p class="text-[#5D6D7E] text-lg mb-4">No familiar words to show.</p>
+                            <% }%>
+                        </div>
+
+                        <div id="comfortable_wordsContainer" class="word-group-display bg-[#FFFFFF] p-8 rounded-xl shadow-lg mb-6 hidden">
+                            <h2 class="text-2xl font-bold text-[#2C3E50] mb-6">Your Learned Words</h2>
+                            <% if (words.comfortab && words.comfortab.length > 0){%>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                                    <% words.comfortab.forEach(function(word, index){%>
+                                        <label for="word-comfortable_words-<%= index %>" class="group word-item flex items-center justify-between p-4 bg-[#FBFBFC] rounded-lg border border-[#E0E0E0] text-[#2C3E50] shadow-sm transition-all duration-200 ease-in-out cursor-pointer
+                                            hover:border-blue-300 hover:shadow-md active:bg-blue-50 active:shadow-inner
+                                            has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50 has-[:checked]:shadow-md">
+                                            <p class="text-lg font-medium truncate"><%= word %></p>
+                                            <input
+                                                type="checkbox"
+                                                id="word-comfortable_words-<%= index %>"
+                                                name="selectedWords"
+                                                value="<%= word %>"
+                                                data-group="comfortable_words"
+                                                class="h-6 w-6 text-[#007BFF] border-[#90CDF4] rounded focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 ml-4 flex-shrink-0"
+                                                aria-label="Select word <%= word %>"
+                                                <% if (typeof selectedWords !== 'undefined' && selectedWords.includes(word)) { %>checked<% } %>
+                                            >
+                                        </label>
+                                        <%})%>
+                                </div>
+                            <% } else {%>
+                                <p class="text-[#5D6D7E] text-lg mb-4">No learned words to show.</p>
+                            <% }%>
+                        </div>
+                    </div>
+                <% } else {%>
+                    <div class="bg-[#FFFFFF] p-8 rounded-xl shadow-lg text-center w-full">
+                        <p class="text-[#5D6D7E] text-lg mb-4">No words to show. Start a new story to populate words.</p>
+                        <a href="/" class="bg-[#007BFF] hover:bg-[#0056B3] text-white font-bold py-3 px-6 rounded-full text-lg focus:outline-none transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">
+                            Start a new story
+                        </a>
+                    </div>
+                <% } %>
+            <% } else { %>
+                <div class="text-center w-full">
+                    <p class="text-[#5D6D7E] text-lg mb-4">Sign in to see your words!</p>
+                    <a href="/auth" class="bg-[#007BFF] hover:bg-[#0056B3] text-white font-bold py-3 px-6 rounded-full text-lg focus:outline-none transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">
+                        Sign In
+                    </a>
+                </div>
+            <% } %>
+        </div>
+    </main>
+    <script>
+        const sessionString = `<%- JSON.stringify(session) %>`;
+        // @ts-ignore 
+        window.initialSupabaseSession = JSON.parse(sessionString);
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons(); 
+
+            const menuButton = document.getElementById('menu-button');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarCloseButton = document.getElementById('sidebar-close-button');
+            const sidebarBackdrop = document.getElementById('sidebar-backdrop');
+            
+            function openSidebar() {
+                sidebar.classList.remove('translate-x-full');
+                sidebarBackdrop.classList.remove('hidden');
+            }
+
+            function closeSidebar() {
+                sidebar.classList.add('translate-x-full');
+                sidebarBackdrop.classList.add('hidden');
+            }
+
+            async function handleSignOut(){
+                const response = await fetch('/api/signOut',{
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                if (!response.ok) { 
+                    return null;
+                }
+                
+                setTimeout(function(){
+                    window.location.href = '/auth';
+                },3000)
+            }
+
+            if (menuButton) {
+                menuButton.addEventListener('click', openSidebar);
+            }
+            if (sidebarCloseButton) {
+                sidebarCloseButton.addEventListener('click', closeSidebar);
+            }
+            if (sidebarBackdrop) {
+                sidebarBackdrop.addEventListener('click', closeSidebar);
+            }
+
+            if (signOutButton) {
+                signOutButton.addEventListener('click', async function(event) {
+                    event.preventDefault(); 
+                    signOutButton.style.pointerEvents = 'none'; 
+                    signOutButton.style.opacity = '0.7'; 
+                    const result = await handleSignOut();
+                    if (result===null){
+                        const originalClasses = ['text-[#5D6D7E]', 'hover:text-[#2C3E50]'];
+
+                        // Add error classes
+                        signOutButton.classList.remove(...originalClasses); // Remove original classes
+                        signOutButton.classList.add('text-red-400', 'hover:text-red-700');
+
+                        // Set a timeout to revert to normal state
+                        setTimeout(() => {
+                            signOutButton.classList.remove('text-red-400', 'hover:text-red-700');
+                            signOutButton.classList.add(...originalClasses); // Add original classes back
+                        }, 3000);
+
+                        signOutButton.style.pointerEvents = 'auto'; 
+                        signOutButton.style.opacity = '1';
+                    }
+                });
+            }
+
+            if (signOutButtonMobile) {
+                signOutButtonMobile.addEventListener('click', async function(event) {
+                    event.preventDefault();
+                    signOutButtonMobile.style.pointerEvents = 'none'; 
+                    signOutButtonMobile.style.opacity = '0.7';  
+                    const result = await handleSignOut();
+                    if (result===null){
+                        const originalClasses = ['text-[#5D6D7E]', 'hover:text-[#2C3E50]'];
+
+                        // Add error classes
+                        signOutButtonMobile.classList.remove(...originalClasses); // Remove original classes
+                        signOutButtonMobile.classList.add('text-red-400', 'hover:text-red-700');
+
+                        // Set a timeout to revert to normal state
+                        setTimeout(() => {
+                            signOutButtonMobile.classList.remove('text-red-400', 'hover:text-red-700');
+                            signOutButtonMobile.classList.add(...originalClasses); // Add original classes back
+                        }, 3000);
+
+                        signOutButtonMobile.style.pointerEvents = 'auto'; 
+                        signOutButtonMobile.style.opacity = '1';
+                    }
+                    closeSidebar(); // Close the sidebar 
+                });
+            }
+
+            // Word management logic (initial display and word selection highlighting)
+            const wordGroupRadios = document.querySelectorAll('input[name="wordGroupView"]');
+            const wordGroupContainers = document.querySelectorAll('.word-group-display');
+
+            function showWordGroup(groupName) {
+                wordGroupContainers.forEach(container => {
+                    if (container.id === `${groupName}Container`) {
+                        container.classList.remove('hidden');
+                    } else {
+                        container.classList.add('hidden');
+                    }
+                });
+            }
+
+            wordGroupRadios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    showWordGroup(this.value);
+                });
+            });
+
+            // Initial display based on checked radio button
+            const initialCheckedRadio = document.querySelector('input[name="wordGroupView"]:checked');
+            if (initialCheckedRadio) {
+                showWordGroup(initialCheckedRadio.value);
+            }
+
+            // Handle word selection and highlighting
+            document.querySelectorAll('.word-item input[type="checkbox"]').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    this.closest('label').classList.toggle('selected', this.checked); 
+                });
+                // Apply 'selected' class on initial load if checkbox is checked 
+                if (checkbox.checked) {
+                    checkbox.closest('label').classList.add('selected');
+                }
+            });
+        });
+    </script>
+    <script src="/static/js/search-words.js"></script>
+</body>
+</html>

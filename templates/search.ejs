@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Searcher</title>
+    <script>
+        window.addEventListener('pageshow', function(event) {
+            if (event.persisted) {
+                window.location.reload();
+            }
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-[#F6F8FA] font-sans leading-normal tracking-normal min-h-screen flex flex-col">
+
+    <nav class="bg-[#EAEFF4] p-4 sticky top-0 z-10 shadow-sm">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="/" class="text-[#2C3E50] text-2xl font-bold">Tale Ling</a>
+            
+            <button id="menu-button" class="md:hidden text-[#2C3E50] focus:outline-none">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
+
+            <div class="hidden md:flex items-center space-x-8">
+                <a href="/" class="text-[#5D6D7E] hover:text-[#2C3E50] transition duration-200 text-lg font-medium flex items-center space-x-2">
+                    <i data-lucide="home" class="w-5 h-5"></i>
+                    <span>Home</span>
+                </a>
+                <a href="/search" class="text-[#5D6D7E] hover:text-[#2C3E50] transition duration-200 text-lg font-medium flex items-center space-x-2">
+                    <i data-lucide="search" class="w-5 h-5"></i>
+                    <span>Add Preferences</span>
+                </a>
+                <a href="/preferences" class="text-[#5D6D7E] hover:text-[#2C3E50] transition duration-200 text-lg font-medium flex items-center space-x-2">
+                    <i data-lucide="heart" class="w-5 h-5"></i>
+                    <span>View Preferences</span>
+                </a>
+                <a href="/words" class="text-[#5D6D7E] hover:text-[#2C3E50] transition duration-200 text-lg font-medium flex items-center space-x-2">
+                    <i data-lucide="book-text" class="w-5 h-5"></i>
+                    <span>Words</span>
+                </a>
+            </div>
+
+            <div class="hidden md:flex space-x-4">
+                <% if (!session) { %>
+                    <a href="/auth" class="text-[#5D6D7E] hover:text-[#2C3E50] transition duration-200 text-lg font-medium flex items-center space-x-2">
+                        <i data-lucide="log-in" class="w-5 h-5"></i>
+                        <span>Sign in</span>
+                    </a>
+                    <a href="/auth" class="text-[#5D6D7E] hover:text-[#2C3E50] transition duration-200 text-lg font-medium flex items-center space-x-2">
+                        <i data-lucide="user-plus" class="w-5 h-5"></i>
+                        <span>Sign Up</span>
+                    </a>
+                <% } else { %>
+                    <a href="#" id="signOutButton" class="text-[#5D6D7E] hover:text-[#2C3E50] transition duration-200 text-lg font-medium flex items-center space-x-2">
+                        <i data-lucide="log-out" class="w-5 h-5"></i>
+                        <span>Sign Out</span>
+                    </a>
+                <% } %>
+            </div>
+        </div>
+    </nav>
+
+    <div id="sidebar" class="fixed top-0 right-0 h-full w-64 bg-[#EAEFF4] transform translate-x-full transition-transform duration-300 ease-in-out z-50 p-6 flex flex-col space-y-4 shadow-lg">
+        <div class="flex justify-end">
+            <button id="sidebar-close-button" class="text-[#2C3E50] focus:outline-none">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        <a href="/" class="text-[#5D6D7E] hover:text-[#2C3E50] transition duration-200 text-lg font-medium py-2 flex items-center space-x-2">
+            <i data-lucide="home" class="w-5 h-5"></i>
+            <span>Home</span>
+        </a>
+        <a href="/search" class="text-[#5D6D7E] hover:text-[#2C3E50] transition duration-200 text-lg font-medium py-2 flex items-center space-x-2">
+            <i data-lucide="search" class="w-5 h-5"></i>
+            <span>Add Preferences</span>
+        </a>
+        <a href="/preferences" class="text-[#5D6D7E] hover:text-[#2C3E50] transition duration-200 text-lg font-medium py-2 flex items-center space-x-2">
+            <i data-lucide="heart" class="w-5 h-5"></i>
+            <span>View Preferences</span>
+        </a>
+        <a href="/words" class="text-[#5D6D7E] hover:text-[#2C3E50] transition duration-200 text-lg font-medium py-2 flex items-center space-x-2">
+            <i data-lucide="book-text" class="w-5 h-5"></i>
+            <span>Words</span>
+        </a>
+        <div class="border-t border-[#CBD5E0] pt-4 mt-4"></div>
+        <% if (!session) { %>
+            <a href="/auth" class="text-[#5D6D7E] hover:text-[#2C3E50] transition duration-200 text-lg font-medium py-2 flex items-center space-x-2">
+                <i data-lucide="log-in" class="w-5 h-5"></i>
+                <span>Sign in</span>
+            </a>
+            <a href="/auth" class="text-[#5D6D7E] hover:text-[#2C3E50] transition duration-200 text-lg font-medium py-2 flex items-center space-x-2">
+                <i data-lucide="user-plus" class="w-5 h-5"></i>
+                <span>Sign Up</span>
+            </a>
+        <% } else { %>
+            <a href="#" id="signOutButtonMobile" class="text-[#5D6D7E] hover:text-[#2C3E50] transition duration-200 text-lg font-medium py-2 flex items-center space-x-2">
+                <i data-lucide="log-out" class="w-5 h-5"></i>
+                <span>Sign Out</span>
+            </a>
+        <% } %>
+    </div>
+
+    <div id="sidebar-backdrop" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
+    <% if (!session&&errorMessage) { %>
+        <div class="flex items-center justify-center min-h-screen">
+            <p class="text-red-500 text-center text-lg col-span-full -translate-y-16"><%= errorMessage %></p>
+        </div>
+        
+    <% } else {%>
+        <main class="flex-grow container mx-auto mt-8 p-6 bg-[#FFFFFF] rounded-xl shadow-lg max-w-4xl">
+            <h1 class="text-4xl font-extrabold text-[#2C3E50] mb-6 text-center">Search What You Like</h1>
+            
+            <div class="flex flex-col sm:flex-row items-center justify-center mb-8 space-y-4 sm:space-y-0 sm:space-x-4">
+                <input type="text" id="searchInput" placeholder="Search books, movies or tv shows..."
+                    class="flex-grow p-3 border border-[#E0E0E0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#007BFF] w-full text-lg text-[#2C3E50]">
+                <button id="searchButton"
+                        class="bg-[#007BFF] text-white px-6 py-3 rounded-lg shadow-md hover:bg-[#0056B3] transition duration-200 text-lg w-full sm:w-auto flex items-center justify-center space-x-2">
+                    <i data-lucide="search" class="w-5 h-5"></i>
+                    <span>Search</span>
+                </button>
+            </div>
+
+            <div id="results" class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <p class="text-center text-[#5D6D7E] col-span-full" id="initialMessage">Enter a query and click search to find your favorite narratives</p>
+            </div>
+        </main>
+    <%} %>
+    <script>
+        const sessionString = `<%- JSON.stringify(session) %>`;
+        // @ts-ignore 
+        window.initialSupabaseSession = JSON.parse(sessionString);
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Lucide icons
+            lucide.createIcons(); 
+
+            // Sidebar/Menu functionality (copied from main page)
+            const menuButton = document.getElementById('menu-button');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarCloseButton = document.getElementById('sidebar-close-button');
+            const sidebarBackdrop = document.getElementById('sidebar-backdrop');
+            
+            const signOutButton = document.getElementById('signOutButton');
+            const signOutButtonMobile = document.getElementById('signOutButtonMobile');
+
+            function openSidebar() {
+                sidebar.classList.remove('translate-x-full');
+                sidebarBackdrop.classList.remove('hidden');
+            }
+
+            function closeSidebar() {
+                sidebar.classList.add('translate-x-full');
+                sidebarBackdrop.classList.add('hidden');
+            }
+
+            async function handleSignOut(){
+                const response = await fetch('/api/signOut',{
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                if (!response.ok) { 
+                    return null;
+                }
+                
+                setTimeout(function(){
+                    window.location.href = '/auth';
+                },3000)
+            }
+
+            if (menuButton) {
+                menuButton.addEventListener('click', openSidebar);
+            }
+            if (sidebarCloseButton) {
+                sidebarCloseButton.addEventListener('click', closeSidebar);
+            }
+            if (sidebarBackdrop) {
+                sidebarBackdrop.addEventListener('click', closeSidebar);
+            }
+            if (signOutButton) {
+                signOutButton.addEventListener('click', async function(event) {
+                    event.preventDefault(); 
+                    signOutButton.style.pointerEvents = 'none'; 
+                    signOutButton.style.opacity = '0.7'; 
+                    const result = await handleSignOut();
+                    if (result===null){
+                        const originalClasses = ['text-[#5D6D7E]', 'hover:text-[#2C3E50]'];
+
+                        // Add error classes
+                        signOutButton.classList.remove(...originalClasses); // Remove original classes
+                        signOutButton.classList.add('text-red-400', 'hover:text-red-700');
+
+                        // Set a timeout to revert to normal state
+                        setTimeout(() => {
+                            signOutButton.classList.remove('text-red-400', 'hover:text-red-700');
+                            signOutButton.classList.add(...originalClasses); // Add original classes back
+                        }, 3000);
+
+                        signOutButton.style.pointerEvents = 'auto'; 
+                        signOutButton.style.opacity = '1';
+                    }
+                });
+            }
+
+            if (signOutButtonMobile) {
+                signOutButtonMobile.addEventListener('click', async function(event) {
+                    event.preventDefault();
+                    signOutButtonMobile.style.pointerEvents = 'none'; 
+                    signOutButtonMobile.style.opacity = '0.7';  
+                    const result = await handleSignOut();
+                    if (result===null){
+                        const originalClasses = ['text-[#5D6D7E]', 'hover:text-[#2C3E50]'];
+
+                        // Add error classes
+                        signOutButtonMobile.classList.remove(...originalClasses); // Remove original classes
+                        signOutButtonMobile.classList.add('text-red-400', 'hover:text-red-700');
+
+                        // Set a timeout to revert to normal state
+                        setTimeout(() => {
+                            signOutButtonMobile.classList.remove('text-red-400', 'hover:text-red-700');
+                            signOutButtonMobile.classList.add(...originalClasses); // Add original classes back
+                        }, 3000);
+
+                        signOutButtonMobile.style.pointerEvents = 'auto'; 
+                        signOutButtonMobile.style.opacity = '1';
+                    }
+                    closeSidebar(); // Close the sidebar 
+                });
+            }
+        });
+    </script>
+    <script src="/static/js/search-preferences.js"></script>
+</body>
+</html>

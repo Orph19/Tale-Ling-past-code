@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saved Preferences</title>
+    <script>
+        window.addEventListener('pageshow', function(event) {
+            if (event.persisted) {
+                window.location.reload();
+            }
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-[#F6F8FA] font-sans leading-normal tracking-normal min-h-screen flex flex-col">
+    
+    <nav class="bg-[#EAEFF4] p-4 sticky top-0 z-10 shadow-sm">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="/" class="text-[#2C3E50] text-2xl font-bold">Tale Ling</a>
+            
+            <button id="menu-button" class="md:hidden text-[#2C3E50] focus:outline-none">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
+
+            <div class="hidden md:flex items-center space-x-8">
+                <a href="/" class="text-[#5D6D7E] hover:text-[#2C3E50] transition duration-200 text-lg font-medium flex items-center space-x-2">
+                    <i data-lucide="home" class="w-5 h-5"></i>
+                    <span>Home</span>
+                </a>
+                <a href="/search" class="text-[#5D6D7E] hover:text-[#2C3E50] transition duration-200 text-lg font-medium flex items-center space-x-2">
+                    <i data-lucide="search" class="w-5 h-5"></i>
+                    <span>Add Preferences</span>
+                </a>
+                <a href="/preferences" class="text-[#5D6D7E] hover:text-[#2C3E50] transition duration-200 text-lg font-medium flex items-center space-x-2">
+                    <i data-lucide="heart" class="w-5 h-5"></i>
+                    <span>View Preferences</span>
+                </a>
+                <a href="/words" class="text-[#5D6D7E] hover:text-[#2C3E50] transition duration-200 text-lg font-medium flex items-center space-x-2">
+                    <i data-lucide="book-text" class="w-5 h-5"></i>
+                    <span>Words</span>
+                </a>
+            </div>
+
+            <div class="hidden md:flex space-x-4">
+                <% if (!session) { %>
+                    <a href="/auth" class="text-[#5D6D7E] hover:text-[#2C3E50] transition duration-200 text-lg font-medium flex items-center space-x-2">
+                        <i data-lucide="log-in" class="w-5 h-5"></i>
+                        <span>Sign in</span>
+                    </a>
+                    <a href="/auth" class="text-[#5D6D7E] hover:text-[#2C3E50] transition duration-200 text-lg font-medium flex items-center space-x-2">
+                        <i data-lucide="user-plus" class="w-5 h-5"></i>
+                        <span>Sign Up</span>
+                    </a>
+                <% } else { %>
+                    <a href="#" id="signOutButton" class="text-[#5D6D7E] hover:text-[#2C3E50] transition duration-200 text-lg font-medium flex items-center space-x-2">
+                        <i data-lucide="log-out" class="w-5 h-5"></i>
+                        <span>Sign Out</span>
+                    </a>
+                <% } %>
+            </div>
+        </div>
+    </nav>
+
+    <div id="sidebar" class="fixed top-0 right-0 h-full w-64 bg-[#EAEFF4] transform translate-x-full transition-transform duration-300 ease-in-out z-50 p-6 flex flex-col space-y-4 shadow-lg">
+        <div class="flex justify-end">
+            <button id="sidebar-close-button" class="text-[#2C3E50] focus:outline-none">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        <a href="/" class="text-[#5D6D7E] hover:text-[#2C3E50] transition duration-200 text-lg font-medium py-2 flex items-center space-x-2">
+            <i data-lucide="home" class="w-5 h-5"></i>
+            <span>Home</span>
+        </a>
+        <a href="/search" class="text-[#5D6D7E] hover:text-[#2C3E50] transition duration-200 text-lg font-medium py-2 flex items-center space-x-2">
+            <i data-lucide="search" class="w-5 h-5"></i>
+            <span>Add Preferences</span>
+        </a>
+        <a href="/preferences" class="text-[#5D6D7E] hover:text-[#2C3E50] transition duration-200 text-lg font-medium py-2 flex items-center space-x-2">
+            <i data-lucide="heart" class="w-5 h-5"></i>
+            <span>View Preferences</span>
+        </a>
+        <a href="/words" class="text-[#5D6D7E] hover:text-[#2C3E50] transition duration-200 text-lg font-medium py-2 flex items-center space-x-2">
+            <i data-lucide="book-text" class="w-5 h-5"></i>
+            <span>Words</span>
+        </a>
+        <div class="border-t border-[#CBD5E0] pt-4 mt-4"></div>
+        <% if (!session) { %>
+            <a href="/auth" class="text-[#5D6D7E] hover:text-[#2C3E50] transition duration-200 text-lg font-medium py-2 flex items-center space-x-2">
+                <i data-lucide="log-in" class="w-5 h-5"></i>
+                <span>Sign in</span>
+            </a>
+            <a href="/auth" class="text-[#5D6D7E] hover:text-[#2C3E50] transition duration-200 text-lg font-medium py-2 flex items-center space-x-2">
+                <i data-lucide="user-plus" class="w-5 h-5"></i>
+                <span>Sign Up</span>
+            </a>
+        <% } else { %>
+            <a href="#" id="signOutButtonMobile" class="text-[#5D6D7E] hover:text-[#2C3E50] transition duration-200 text-lg font-medium py-2 flex items-center space-x-2">
+                <i data-lucide="log-out" class="w-5 h-5"></i>
+                <span>Sign Out</span>
+            </a>
+        <% } %>
+    </div>
+
+    <div id="sidebar-backdrop" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
+
+    <main class="flex-grow container mx-auto mt-8 p-6 bg-[#FFFFFF] rounded-xl shadow-lg max-w-4xl">
+        <h1 class="text-4xl font-extrabold text-[#2C3E50] mb-6 text-center">Your Saved Preferences</h1>
+
+        <% if (items && items.length > 0 && session) { %>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <% items.forEach(function(item) { %>
+                    <div class="item-card bg-[#FBFBFC] border border-[#E0E0E0] rounded-lg p-4 shadow-md text-center hover:scale-102 hover:shadow-xl transition duration-300 ease-in-out">
+                        <span class="type-label inline-block bg-[#EAF2F8] text-[#4A6981] text-xs font-semibold px-2.5 py-0.5 rounded-full mb-2">
+                            <%= item.type.replace('_', ' ') %>
+                        </span>
+                        <% if (item.image_url) { %>
+                            <div class="w-full h-48 flex items-center justify-center mb-3"> 
+                                <img src="<%= item.image_url %>" alt="<%= item.name %> Image" class="max-w-full max-h-full object-contain rounded-md">
+                            </div>
+                        <% } %>
+                        <h3 class="text-lg font-semibold text-[#2C3E50] mb-1"><%= item.name %></h3>
+                        <% if (item.release_year) { %>
+                            <p class="text-[#5D6D7E] text-sm">Release Year: <%= item.release_year %></p>
+                        <% } %>
+                    </div>
+                <% }); %>
+            </div>
+        <% } else if (!session) { %>
+            <div class="flex flex-col items-center mt-6">
+                <p class="text-[#5D6D7E] text-center text-lg mb-4">Sign in to save your preferences!</p>
+                <a href="/auth" class="bg-[#007BFF] hover:bg-[#0056B3] text-white font-bold py-3 px-6 rounded-full text-lg focus:outline-none transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">
+                    Sign In
+                </a>
+            </div>
+        <% } else {%>
+            <p class="text-[#5D6D7E] text-center text-lg">No narratives saved yet.</p>
+            <div class="flex justify-center mt-6">
+                <a href="/search" class="bg-[#007BFF] hover:bg-[#0056B3] text-white font-bold py-3 px-6 rounded-full text-lg focus:outline-none transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">
+                    Add New Preferences
+                </a>
+            </div>
+        <% } %>
+    </main>
+
+    <script>
+        const sessionString = `<%- JSON.stringify(session) %>`;
+        // @ts-ignore 
+        window.initialSupabaseSession = JSON.parse(sessionString);
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Lucide icons
+            lucide.createIcons(); 
+
+            // Sidebar/Menu functionality
+            const menuButton = document.getElementById('menu-button');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarCloseButton = document.getElementById('sidebar-close-button');
+            const sidebarBackdrop = document.getElementById('sidebar-backdrop');
+
+            const signOutButton = document.getElementById('signOutButton');
+            const signOutButtonMobile = document.getElementById('signOutButtonMobile');
+
+            function openSidebar() {
+                sidebar.classList.remove('translate-x-full');
+                sidebarBackdrop.classList.remove('hidden');
+            }
+
+            function closeSidebar() {
+                sidebar.classList.add('translate-x-full');
+                sidebarBackdrop.classList.add('hidden');
+            }
+
+            async function handleSignOut(){
+                const response = await fetch('/api/signOut',{
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                if (!response.ok) { 
+                    return null;
+                }
+                
+                setTimeout(function(){
+                    window.location.href = '/auth';
+                },3000)
+            }
+
+            if (menuButton) {
+                menuButton.addEventListener('click', openSidebar);
+            }
+            if (sidebarCloseButton) {
+                sidebarCloseButton.addEventListener('click', closeSidebar);
+            }
+            if (sidebarBackdrop) {
+                sidebarBackdrop.addEventListener('click', closeSidebar);
+            }
+
+            if (signOutButton) {
+                signOutButton.addEventListener('click', async function(event) {
+                    event.preventDefault(); 
+                    signOutButton.style.pointerEvents = 'none'; 
+                    signOutButton.style.opacity = '0.7'; 
+                    const result = await handleSignOut();
+                    if (result===null){
+                        const originalClasses = ['text-[#5D6D7E]', 'hover:text-[#2C3E50]'];
+
+                        // Add error classes
+                        signOutButton.classList.remove(...originalClasses); // Remove original classes
+                        signOutButton.classList.add('text-red-400', 'hover:text-red-700');
+
+                        // Set a timeout to revert to normal state
+                        setTimeout(() => {
+                            signOutButton.classList.remove('text-red-400', 'hover:text-red-700');
+                            signOutButton.classList.add(...originalClasses); // Add original classes back
+                        }, 3000);
+
+                        signOutButton.style.pointerEvents = 'auto'; 
+                        signOutButton.style.opacity = '1';
+                    }
+                });
+            }
+
+            if (signOutButtonMobile) {
+                signOutButtonMobile.addEventListener('click', async function(event) {
+                    event.preventDefault();
+                    signOutButtonMobile.style.pointerEvents = 'none'; 
+                    signOutButtonMobile.style.opacity = '0.7';  
+                    const result = await handleSignOut();
+                    if (result===null){
+                        const originalClasses = ['text-[#5D6D7E]', 'hover:text-[#2C3E50]'];
+
+                        // Add error classes
+                        signOutButtonMobile.classList.remove(...originalClasses); // Remove original classes
+                        signOutButtonMobile.classList.add('text-red-400', 'hover:text-red-700');
+
+                        // Set a timeout to revert to normal state
+                        setTimeout(() => {
+                            signOutButtonMobile.classList.remove('text-red-400', 'hover:text-red-700');
+                            signOutButtonMobile.classList.add(...originalClasses); // Add original classes back
+                        }, 3000);
+
+                        signOutButtonMobile.style.pointerEvents = 'auto'; 
+                        signOutButtonMobile.style.opacity = '1';
+                    }
+                    closeSidebar(); // Close the sidebar 
+                });
+            }
+        });
+    </script>
+</body>
+</html>
