@@ -262,7 +262,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         gridDiv.classList.add('grid', 'grid-cols-1', 'sm:grid-cols-2', 'lg:grid-cols-3', 'gap-4');
                         targetContainer.appendChild(gridDiv);
                         // Also, remove the "No words to show" message if it exists
-                        const noWordsMessage = targetContainer.querySelector('p.text-gray-600');
+                        const noWordsMessage = targetContainer.querySelector('p.text-lg.mb-4');
                         if (noWordsMessage) {
                             noWordsMessage.remove();
                         }
