@@ -125,7 +125,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return false; 
             } else {
                 const responseData = await response.json();
-                console.log(responseData.message);
+
                 displayMessage(responseData.message || 'Words moved successfully!', 'success');
                 return true;
             }

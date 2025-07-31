@@ -1417,16 +1417,16 @@ app.post('/api/translations', async (req, res) => {
         let translation;
 
         if (Array.isArray(storedTransl)) {
-            for (let i = 0; i < storedTransl.length; i++) {
-                if (storedTransl[i].index === index) {
-                    //If the translation was already made, return it
-                    return res.status(200).json({ translation: storedTransl[i].translation });
-                }
+            const foundTranslation = storedTransl.find(item => item.index === index);
+            if (foundTranslation) {
+                return res.status(200).json({ translation: foundTranslation.translation });
             }
         }
 
         translation = await translateSegment(segText);
+        
         await updateTranslations(translation, storedTransl);
+
         return res.status(200).json({ translation: translation });
 
     } catch (err) {

@@ -7,7 +7,6 @@ marked.setOptions({
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM Content Loaded. Attempting to attach event listeners.");
     const storyTitleElement = document.getElementById('storyTitle');
     const storyContentDiv = document.getElementById('storyContent');
     let nextSegmentButton = document.getElementById('nextSegmentButton');
@@ -155,12 +154,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function attachTranslationButtonListeners() {
         const buttons = document.querySelectorAll('.show-translation');
 
-        if (buttons.length === 0) {
-            console.warn("No elements with class 'show-translation' found after content load. This might be expected if no segments are loaded yet.");
-        } else {
-            console.log(`Found ${buttons.length} buttons with class 'show-translation' to attach listeners to.`);
-        }
-
         buttons.forEach(button => {
             button.removeEventListener('click', handleTranslationButtonClick);
             button.addEventListener('click', handleTranslationButtonClick);
@@ -169,7 +162,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Handler for translation button clicks ---
     async function handleTranslationButtonClick(event) {
-        console.log("Button clicked!");
         // Find the actual button element, even if a child (like SVG) was clicked
         const actualButton = event.target.closest('.show-translation');
         if (!actualButton) {
@@ -221,22 +213,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const segmentIndex = parentParagraph.getAttribute('index');
 
-
-        console.log(`Segment Index: ${segmentIndex}, Segment Content: "${segmentContent}"`);
-
-        if (typeof getTranslation === 'function') {
-            const translatedParagraph = await getTranslation(parentParagraph, segmentContent, segmentIndex, currentStoryId);
-            if (translatedParagraph) {
-                // Store the created translation element reference on the button
-                actualButton.translatedParagraph = translatedParagraph;
-                actualButton.innerHTML = hideIcon; // Change icon to hide
-            } else {
-                actualButton.innerHTML = `<span class="text-red-500">!</span>`; // Error icon
-            }
+        
+        const translatedParagraph = await getTranslation(parentParagraph, segmentContent, segmentIndex, currentStoryId);
+        if (translatedParagraph) {
+            // Store the created translation element reference on the button
+            actualButton.translatedParagraph = translatedParagraph;
+            actualButton.innerHTML = hideIcon; // Change icon to hide
         } else {
-            console.error("Error: getTranslation function is not defined.");
             actualButton.innerHTML = `<span class="text-red-500">!</span>`; // Error icon
         }
+        
         actualButton.disabled = false; // Re-enable button
     }
 
@@ -307,10 +293,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Scroll to the bottom of the content or to the next segment button
                 if (nextSegmentButton) {
-                    console.log('nex seg button exist')
                     if (data.is_generating) {
                         nextSegmentButton.disabled = true;
-                        console.log('Button disabled')
+
                         displayCountdownMessage(10, 'Next segment generation in progress, please wait. The page will reload automaticly in ', ' seconds...', function() {
                             location.reload();
                         });
@@ -318,19 +303,18 @@ document.addEventListener('DOMContentLoaded', () => {
                             location.reload();
                         }, 10000); 
                     } else {
-                        console.log('Button enabled,is generating?',data.is_generating);
+
                         nextSegmentButton.disabled = false; // Enable if not generating and not ended
                     }
 
                     nextSegmentButton.scrollIntoView({ behavior: 'smooth', block: 'end' });
 
-                    console.log('Data to check:',data,typeof data.is_generating);
                     
                 } else if (backToListButton) { // If nextSegmentButton is removed, scroll to backToListButton
                     backToListButton.scrollIntoView({ behavior: 'smooth', block: 'end' });
-                    console.log('there is back button');
+
                 } else {
-                    console.log('Theres no back buttton nor continue');
+
                     storyContentDiv.scrollTop = storyContentDiv.scrollHeight;
                 }
 
@@ -459,6 +443,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             parentElement.appendChild(pTranslation);
             return pTranslation;
+
         } catch (error) {
             console.error('Error fetching translation:', error);
             return null;

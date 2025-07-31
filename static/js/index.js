@@ -5,7 +5,6 @@ document.addEventListener('DOMContentLoaded', () => {
         card.addEventListener('click', () => {
             const storyId = card.getAttribute('data-story-id');
             if (storyId) {
-                console.log('Opening existing story with ID:', storyId);
                 // Redirect to the backend route that serves story.ejs with the specific storyId
                 window.location.href = `/story?storyId=${storyId}`;
             } else {
@@ -30,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 startStoryButton.disabled = true; // Disable button during loading
 
                 if (!window.initialSupabaseSession) {
-                    console.log("User is NOT logged in. Redirecting to login page.");
+
                     statusMessage.textContent = 'Please sign in... Redirecting...';
                     setTimeout(() => {
                         window.location.href = '/logIn'; // Redirect to your login page
@@ -67,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     const data = await response.json();
                     if (data && data.storyId) {
-                        console.log('Story created successfully. Story ID:', data.storyId);
+
                         statusMessage.textContent = 'Story created! Redirecting...';
                         // Redirect to the story display page, passing the storyId in the URL
                         window.location.href = `/story?storyId=${data.storyId}`;

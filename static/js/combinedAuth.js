@@ -172,7 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             } else {
                 const signUpData = await signUpResponse.json();
-                console.log('Sign-Up Success:', signUpData);
+
                 displayMessage(messageDivSignUp, messageElementSignUp, signUpData.message || 'Successfully Signed Up!', 'success');
                 
                 emailInputSignUp.value = '';
