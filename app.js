@@ -1018,7 +1018,7 @@ app.post('/api/stories', async(req,res)=>{
         const completePrompt = `${content}. 7. Do not make the ${foreign_language} words stand out, you would be making worst the reading experience of the user, so don't do it. 8.In each of your turns you will output uniquely the next segment.9.Ensure you did exactly all I asked you to do`
         try {
             const result = await ai.models.generateContent({
-                model: "gemini-2-5-pro",
+                model: "gemini-2.5-pro",
                 contents:`${languagePrompt}${completePrompt}.Just for this turn, give me the title and the pool of words along the segment too. For the novel's title, create an uncommon, highly original, and evocative title that hints at the story's depth without revealing too much. Absolutely avoid generic fantasy, sci-fi, or overly dramatic clichés.`,
                 config:{
                     responseMimeType: "application/json",
@@ -1199,7 +1199,7 @@ app.post('/api/stories/:storyId/continue', async (req, res) => {
     async function generateNextSegment(id,currentHistory) {
         try {
             const chat = ai.chats.create({
-                model: "gemini-2-5-pro",
+                model: "gemini-2.5-pro",
                 history: currentHistory.story_context,
                 config: {
                     temperature: 1.3
