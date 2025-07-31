@@ -76,7 +76,7 @@ async function performSearch() {
                     event.target.classList.add('bg-orange-500', 'cursor-not-allowed');
 
                     setTimeout(() => {
-                        window.location.href = '/logIn'; 
+                        window.location.href = '/auth'; 
                     }, 1500); // Give user a moment to see the message
                     return; 
                 }
