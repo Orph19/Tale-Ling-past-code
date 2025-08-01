@@ -1304,15 +1304,19 @@ app.post('/api/stories/:storyId/continue', async (req, res) => {
         
         const nextSegment = await generateNextSegment(currentStoryId,storyHistory);
 
+        let is_ended;
         if (numberSegments===maxStoryLength-1){
             await updateStoryHistory(nextSegPrompt, nextSegment, currentStoryId,storyHistory,true);
+            is_ended = true;
         } else {
             await updateStoryHistory(nextSegPrompt, nextSegment, currentStoryId,storyHistory);
+            is_ended = false;
         }
         
         res.status(200).json({
             countSegment:numberSegments,
-            newSegment: nextSegment
+            newSegment: nextSegment,
+            is_ended: is_ended
         });
     } catch (err) {
         console.error('Overall story continuation failed for story ID:', currentStoryId, err);

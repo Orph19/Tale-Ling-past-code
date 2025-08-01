@@ -248,7 +248,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (!response.ok) {
-                throw new Error(`Server error (${response.status}): ${data.error || data.message || 'Failed to load story.'}`);
+                console.error(`Server error (${response.status}): ${data.error || data.message}`)
+                throw new Error('Failed to load story');
             }
 
             if (data && data.segments && Array.isArray(data.segments)) {
@@ -304,11 +305,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         }, 10000); 
                     } else {
 
-                        nextSegmentButton.disabled = false; // Enable if not generating and not ended
+                        nextSegmentButton.disabled = false; // Enable if not generating
                     }
-
-                    nextSegmentButton.scrollIntoView({ behavior: 'smooth', block: 'end' });
-
+                    if (data.segments.length!==1){ //Do not scroll if the story was recently created
+                        nextSegmentButton.scrollIntoView({ behavior: 'smooth', block: 'end' });
+                    }
                     
                 } else if (backToListButton) { // If nextSegmentButton is removed, scroll to backToListButton
                     backToListButton.scrollIntoView({ behavior: 'smooth', block: 'end' });
@@ -346,23 +347,38 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({})
             });
 
-            const responseText = await response.text();
-            let data;
-            try {
-                data = JSON.parse(responseText);
-            } catch (parseError) {
-                data = { message: responseText || 'No specific error message provided.' };
+            if (!response.ok) {
+                nextSegmentButton.disabled = false;
+
+                const result = await response.text()
+                const errorData = JSON.parse(result)
+
+                console.error(`Server error (${response.status}): ${errorData.error}`)
+                
+                throw new Error('Failed to get next segment, please try again');
+                
             }
 
-            if (!response.ok) {
-                throw new Error(`Server error (${response.status}): ${data.error || data.message || 'Failed to get next segment.'}`);
+            const responseBody = await response.text();
+
+            let data;
+            try {
+                data = JSON.parse(responseBody);
+            } catch (parseError) {
+                data = { message: responseBody || 'No specific error message provided.' };
+
+                console.error('Error parsing next segment data:', data.message)
+                throw new Error('Failed to acces the generated content, please reload the page')
             }
-            if (data && data.maxSegment && data.countSegment) {
-                if ((data.maxSegment - 1) === data.countSegment) {
-                    if (nextSegmentButton) nextSegmentButton.remove();
+
+            //Check if the story ended to remove the button for next segment generation
+            if (data.is_ended===true) {
+                if (nextSegmentButton) {
+                    nextSegmentButton.remove();
                 }
-            }
-            if (data && data.newSegment) {
+            } 
+
+            if (data.newSegment) {
                 hideMessage(); // Hide any existing message
 
                 const p = document.createElement('p');
@@ -390,6 +406,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 attachTranslationButtonListeners();
 
+                nextSegmentButton.disabled = false; //Enable next segment button
+
                 // Scroll to the new segment 
                 p.scrollIntoView({ behavior: 'smooth', block: 'end' });
                 
@@ -401,9 +419,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Error continuing story:', error);
             hideMessage();
             displayMessage(`Error continuing story: ${error.message}`, 'error');
-        } finally {
-            if (nextSegmentButton) nextSegmentButton.disabled = false;
-        }
+        } 
     }
 
     // This function now returns the created translation paragraph
