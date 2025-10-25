@@ -39,5 +39,3 @@ A demo video of the app can be found [here](https://youtu.be/-3jo9Z0Qhjw).
 - Model Performance: The current Gemini 2.5-flash model struggles with instruction-following and unique story generation. Upgrading to the 2.5-Pro model would improve quality but increase latency.
 - Classification Model Accuracy: The multi-class classification model was trained on a small dataset with a ad hoc pipeline. It can be enhanced for better accuracy, which will directly improve story relevance and personalization.
 - Data Synchronization: A timing issue currently prevents word groups from being updated correctly if a user moves words while a new story is being generated (e.g., creating duplicate words across different groups). This requires a more robust fetching system or a temporary lock to ensure data consistency.
-
-©2025 Orph19. All Rights Reserved.
